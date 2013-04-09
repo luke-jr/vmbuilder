@@ -35,8 +35,11 @@ class Ubuntu(Distro):
              ]
 
     # Maps host arch to valid guest archs
-    valid_archs = { 'amd64' : ['amd64', 'i386', 'lpia' ],
+    valid_archs = { 'x86_64' : ['amd64', 'i386', 'lpia' ],
                     'i386' : [ 'i386', 'lpia' ],
+                    'i486' : [ 'i386', 'lpia' ],
+                    'i586' : [ 'i386', 'lpia' ],
+                    'i686' : [ 'i386', 'lpia' ],
                     'lpia' : [ 'i386', 'lpia' ] }
 
     xen_kernel = ''
@@ -49,6 +52,7 @@ class Ubuntu(Distro):
 
         group = self.setting_group('General OS options')
         self.host_arch = run_cmd('dpkg', '--print-architecture').rstrip()
+        self.kernel_arch = run_cmd('uname', '-m').rstrip()
         group.add_setting('arch', extra_args=['-a'], default=self.host_arch, help='Specify the target architecture.  Valid options: amd64 i386 lpia (defaults to host arch)')
         group.add_setting('hostname', default='ubuntu', help='Set NAME as the hostname of the guest. Default: ubuntu. Also uses this name as the VM name.')
 
@@ -108,10 +112,10 @@ class Ubuntu(Distro):
         self.suite = getattr(mod, suite.capitalize())(self)
 
         arch = self.get_setting('arch') 
-        if arch not in self.valid_archs[self.host_arch] or  \
+        if arch not in self.valid_archs[self.kernel_arch] or  \
             not self.suite.check_arch_validity(arch):
             raise VMBuilderUserError('%s is not a valid architecture. Valid architectures are: %s' % (arch,
-                                                                                                      ' '.join(self.valid_archs[self.host_arch])))
+                                                                                                      ' '.join(self.valid_archs[self.kernel_arch])))
 
         components = self.get_setting('components')
         if not components:
